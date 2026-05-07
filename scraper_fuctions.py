@@ -50,7 +50,7 @@ def scrape_capology_multiple_seasons(seasons, league = 'England Premier League',
     # Concatenate everything together
     if len(all_seasons_data) > 0:
         master_df = pd.concat(all_seasons_data, ignore_index = True)
-        print("Scraping complete! Master DataFrame created.")
+        print("Scraping complete! Capology DataFrame created.")
         return master_df
     else:
         print("No data was successfully scraped.")
@@ -105,7 +105,7 @@ def scrape_sofascore_multiple_seasons(seasons, league = 'England Premier League'
         master_df = pd.concat(all_seasons_data, ignore_index = True)
         master_df = master_df.dropna(axis = 1)
         master_df = master_df.rename(columns={'player': 'Player'})
-        print("Scraping complete! Sofascore Master DataFrame created.")
+        print("Scraping complete! Sofascore DataFrame created.")
         return master_df
     else:
         print("No data was successfully scraped.")
