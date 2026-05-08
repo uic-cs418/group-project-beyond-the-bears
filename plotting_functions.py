@@ -2,124 +2,153 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import matplotlib.ticker as ticker
 
-# Generates a grouped bar chart showing the average salary per position across multiple seasons.
+
+sns.set_theme(
+    style="whitegrid",
+    context="notebook",
+    font_scale=0.95  # slightly smaller text
+)
+
+plt.rcParams.update({
+    "figure.dpi": 120,
+    "axes.spines.top": False,
+    "axes.spines.right": False,
+    "axes.titleweight": "bold"
+})
+
+
 def plot_avg_salary_by_position(df):
-    # Group the data by season and position
     position_average = df.groupby(['Season', 'Position'])['Salary (EUR)'].mean().reset_index()
 
-    # Set the style and size
-    plt.figure(figsize = (14, 7))
-    sns.set_theme(style = "whitegrid")
+    plt.figure(figsize=(9, 4))  # smaller
 
-    # Create the side-by-side bar chart
     ax = sns.barplot(
         data=position_average,
-        x = 'Season',
-        y = 'Salary (EUR)',
-        hue = 'Position',
-        palette = 'Set2' 
+        x='Season',
+        y='Salary (EUR)',
+        hue='Position',
+        palette='pastel',
+        edgecolor='black'
     )
 
-    # Format the chart
-    plt.title('Average Salary per Position by Season', fontsize = 16)
-    plt.xlabel('Season', fontsize = 14)
-    plt.ylabel('Average Salary (EUR)', fontsize = 14)
+    plt.title('Average Salary per Position by Season', pad=10, fontsize=12)
+    plt.xlabel('Season', fontsize=10)
+    plt.ylabel('Avg Salary (€)', fontsize=10)
 
-    # Format y-axis to show value in millions and add euro sign (Used unicode since euro sign breaks inbetween files)
-    ax.yaxis.set_major_formatter(ticker.FuncFormatter(lambda x, pos: f'\u20AC{x*1e-6:,.1f}M'))
+    ax.yaxis.set_major_formatter(
+        ticker.FuncFormatter(lambda x, pos: f'\u20AC{x*1e-6:,.1f}M')
+    )
 
-    # Move the legend outside the plot
-    plt.legend(title = 'Position', bbox_to_anchor = (1.05, 1), loc = 'upper left')
+    sns.despine()
+
+    plt.legend(
+        title='Position',
+        frameon=False,
+        fontsize=8,
+        title_fontsize=9,
+        bbox_to_anchor=(1.02, 1),
+        loc='upper left'
+    )
 
     plt.tight_layout()
     plt.show()
 
-# Generates a boxplot showing the distribution and outliers of salaries for each position across the dataset
+
+
 def plot_salary_boxplot_by_position(df):
-    plt.figure(figsize = (12, 8))
-    sns.set_theme(style = "whitegrid")
+    plt.figure(figsize=(7, 4.5))  # smaller
 
-    # Create the boxplots
     ax = sns.boxplot(
         data=df,
-        x = 'Position',
-        y = 'Salary (EUR)',
-        hue = 'Position',
-        palette = 'Set1',
-        width = 0.6,      # Thins the boxes slightly for a cleaner look
-        fliersize = 5     # Adjusts the size of the outlier dots
+        x='Position',
+        y='Salary (EUR)',
+        palette='Set2',
+        width=0.5,
+        linewidth=1,
+        fliersize=3
     )
 
-    # Format the chart
-    plt.title('Salary Distribution and Outliers by Position', fontsize = 16)
-    plt.xlabel('Position', fontsize = 14)
-    plt.ylabel('Salary (EUR)', fontsize = 14)
+    plt.title('Salary Distribution by Position', pad=10, fontsize=12)
+    plt.xlabel('Position', fontsize=10)
+    plt.ylabel('Salary (€)', fontsize=10)
 
-    # Format y-axis to show value in millions
-    ax.yaxis.set_major_formatter(ticker.FuncFormatter(lambda x, pos: f'\u20AC{x*1e-6:,.1f}M'))
+    ax.yaxis.set_major_formatter(
+        ticker.FuncFormatter(lambda x, pos: f'\u20AC{x*1e-6:,.1f}M')
+    )
+
+    sns.despine()
 
     plt.tight_layout()
     plt.show()
 
-# Generates a grouped boxplot showing the distribution and outliers of salaries for each position, split across multiple seasons.
+
 def plot_salary_boxplot_by_position_and_season(df):
-    # Increased width to 16 to accommodate 5 boxes per position
-    plt.figure(figsize = (16, 8))
-    sns.set_theme(style = "whitegrid")
+    plt.figure(figsize=(10, 5))  # smaller than before
 
-    # Create the side-by-side boxplots
     ax = sns.boxplot(
         data=df,
-        x = 'Position',
-        y = 'Salary (EUR)',
-        hue = 'Season',
-        palette = 'Set3',
-        width = 0.7,      
-        fliersize = 4     
+        x='Position',
+        y='Salary (EUR)',
+        hue='Season',
+        palette='Set3',
+        width=0.6,
+        fliersize=3
     )
 
-    # Format the chart
-    plt.title('Salary Distribution and Outliers by Position & Season', fontsize = 16)
-    plt.xlabel('Position', fontsize = 14)
-    plt.ylabel('Salary (EUR)', fontsize = 14)
+    plt.title('Salary by Position & Season', pad=10, fontsize=12)
+    plt.xlabel('Position', fontsize=10)
+    plt.ylabel('Salary (€)', fontsize=10)
 
-    # Format y-axis to show millions
-    ax.yaxis.set_major_formatter(ticker.FuncFormatter(lambda x, pos: f'\u20AC{x*1e-6:,.1f}M'))
+    ax.yaxis.set_major_formatter(
+        ticker.FuncFormatter(lambda x, pos: f'\u20AC{x*1e-6:,.1f}M')
+    )
 
-    # Move the legend outside the plot
-    plt.legend(title = 'Season', bbox_to_anchor = (1.05, 1), loc = 'upper left')
+    sns.despine()
+
+    plt.legend(
+        title='Season',
+        frameon=False,
+        fontsize=8,
+        title_fontsize=9,
+        bbox_to_anchor=(1.02, 1),
+        loc='upper left'
+    )
 
     plt.tight_layout()
     plt.show()
 
-# Generates a scatterplot comparing salary to Sofascore total rating, colored by position and sized by goals
-def plot_salary_vs_rating(df):
-    # Set the size and theme
-    plt.figure(figsize=(14, 7))
-    sns.set_theme(style="whitegrid")
 
-    # Create the scatterplot
+
+def plot_salary_vs_rating(df):
+    plt.figure(figsize=(9, 4.8))  # smaller
+
     ax = sns.scatterplot(
-        data = df,
-        x = "Salary (EUR)",
-        y = "totalRating",
-        hue = "Position",
-        size = "goals",
-        sizes = (50, 400),
-        palette = "tab10",
-        alpha=0.8
+        data=df,
+        x="Salary (EUR)",
+        y="totalRating",
+        hue="Position",
+        size="goals",
+        sizes=(30, 180),
+        palette="deep",
+        alpha=0.7
     )
 
-    # Format the chart text
-    plt.title("Salary vs Sofascore Rating", fontsize=16)
-    plt.xlabel("Salary (EUR)", fontsize=14)
-    plt.ylabel("Total Rating", fontsize=14)
+    plt.title("Salary vs Sofascore Rating", pad=10, fontsize=12)
+    plt.xlabel("Salary (€)", fontsize=10)
+    plt.ylabel("Rating", fontsize=10)
 
-    # Format the x-axis to show millions
-    ax.xaxis.set_major_formatter(ticker.FuncFormatter(lambda x, pos: f'\u20AC{x*1e-6:,.1f}M'))
+    ax.xaxis.set_major_formatter(
+        ticker.FuncFormatter(lambda x, pos: f'\u20AC{x*1e-6:,.1f}M')
+    )
 
-    # Move the combined legend outside the plot
-    plt.legend(bbox_to_anchor = (1.05, 1), loc = 'upper left')
+    sns.despine()
+
+    plt.legend(
+        bbox_to_anchor=(1.02, 1),
+        loc='upper left',
+        frameon=False,
+        fontsize=8
+    )
 
     plt.tight_layout()
     plt.show()
