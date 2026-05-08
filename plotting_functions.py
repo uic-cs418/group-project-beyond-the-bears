@@ -20,7 +20,7 @@ plt.rcParams.update({
 def plot_avg_salary_by_position(df):
     position_average = df.groupby(['Season', 'Position'])['Salary (EUR)'].mean().reset_index()
 
-    plt.figure(figsize=(9, 4))  # smaller
+    plt.figure(figsize=(5, 3))  # smaller
 
     ax = sns.barplot(
         data=position_average,
@@ -56,7 +56,7 @@ def plot_avg_salary_by_position(df):
 
 
 def plot_salary_boxplot_by_position(df):
-    plt.figure(figsize=(7, 4.5))  # smaller
+    plt.figure(figsize=(5, 3))  # smaller
 
     ax = sns.boxplot(
         data=df,
@@ -83,7 +83,7 @@ def plot_salary_boxplot_by_position(df):
 
 
 def plot_salary_boxplot_by_position_and_season(df):
-    plt.figure(figsize=(10, 5))  # smaller than before
+    plt.figure(figsize=(5, 3))  # smaller than before
 
     ax = sns.boxplot(
         data=df,
@@ -120,7 +120,7 @@ def plot_salary_boxplot_by_position_and_season(df):
 
 
 def plot_salary_vs_rating(df):
-    plt.figure(figsize=(9, 4.8))  # smaller
+    plt.figure(figsize=(5, 3))  # smaller
 
     ax = sns.scatterplot(
         data=df,
