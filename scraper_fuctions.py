@@ -3,31 +3,13 @@ import ScraperFC as sfc
 import time
 
 # Cleans a single season's Capology DataFrame
-# Automatically detects if it's using the new (18-col, 25-26 season) or old (8-col, previous seasons) schema
 def clean_capology_df(df, season):
-    # Detect schema based on the number of columns
-    if df.shape[1] >= 15:
-        # Detailed schema (e.g., 18 columns)
-        columns_to_keep = [0, 3, 11, 13, 15]
-    else:
-        # Historical schema (e.g., 8 columns)
-        columns_to_keep = [0, 2, 4, 5, 7]
-        
     # Isolate the columns we want
-    df = df.iloc[:, columns_to_keep]
-    
-    # Flatten the MultiIndex
-    df.columns = df.columns.droplevel(0)
+    columns_to_keep = [0, 3, 8, 9, 11]
+    df = df.iloc[:, columns_to_keep].copy()
     
     # Standardize column names
-    rename_dict = {
-        'PLAYER': 'Player',
-        'GROSS P/Y\n(EUR)': 'Salary (EUR)',
-        'POS.': 'Position',
-        'AGE': 'Age',
-        'CLUB': 'Club',
-    }
-    df = df.rename(columns = rename_dict)
+    df.columns = ['Player', 'Salary (EUR)', 'Position', 'Age', 'Club']
     
     # Clean the salary column (convert to string first to handle NaNs safely)
     df['Salary (EUR)'] = df['Salary (EUR)'].astype(str).str.replace(r'[€,\s]', '', regex = True).astype(float)
@@ -68,7 +50,7 @@ def scrape_capology_multiple_seasons(seasons, league = 'England Premier League',
     # Concatenate everything together
     if len(all_seasons_data) > 0:
         master_df = pd.concat(all_seasons_data, ignore_index = True)
-        print("Scraping complete! Master DataFrame created.")
+        print("Scraping complete! Capology DataFrame created.")
         return master_df
     else:
         print("No data was successfully scraped.")
@@ -123,7 +105,7 @@ def scrape_sofascore_multiple_seasons(seasons, league = 'England Premier League'
         master_df = pd.concat(all_seasons_data, ignore_index = True)
         master_df = master_df.dropna(axis = 1)
         master_df = master_df.rename(columns={'player': 'Player'})
-        print("Scraping complete! Sofascore Master DataFrame created.")
+        print("Scraping complete! Sofascore DataFrame created.")
         return master_df
     else:
         print("No data was successfully scraped.")
