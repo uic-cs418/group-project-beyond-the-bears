@@ -1,3 +1,4 @@
+import os
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -14,35 +15,53 @@ def prepare_data(combined_df):
     print("Preparing data features...")
     np.random.seed(418)
     df = combined_df.copy()
+
+    # Keeping only players that have played atleast 25 full games
+    df = df[df['minutesPlayed'] >= 2250].copy()
     
-    # Keeping only players that have played atleast 5 full games
-    df = df[df['minutesPlayed'] >= 450].copy()
+    # Using log(salary) to prevent extreme skewness 
     df['log_salary'] = np.log1p(df['Salary (EUR)'])
     
-    # Per-90 min stats
+    # Building per-90 stats
     stats = ['goals', 'assists', 'totalShots', 'keyPasses',
-             'tackles', 'interceptions', 'saves', 'clearances']
+             'tackles', 'interceptions', 'saves', 'clearances',
+             'accuratePassesPercentage', 'goalConversionPercentage',
+             'totwAppearances', 'matchesStarted', 'appearances']
+             
     for s in stats:
         df[f'{s}_per_90'] = df[s] / (df['minutesPlayed'] / 90)
         
-    # One-hot encoding
+    # One-hot encoding for position
     df = pd.get_dummies(df, columns=['Position'], prefix='pos', drop_first=True)
-    df = pd.get_dummies(df, columns=['Club'], prefix='club', drop_first=True)
     
+    # Club Tier Engineering
+    big_six = ['Manchester City', 'Manchester United', 'Liverpool',
+               'Chelsea', 'Arsenal', 'Tottenham']
+    established = ['Newcastle', 'Aston Villa', 'West Ham', 'Everton',
+                   'Leicester', 'Wolves', 'Brighton']
+                   
+    def club_tier(club):
+        if club in big_six: return 'tier_big6'
+        if club in established: return 'tier_mid'
+        return 'tier_lower'
+
+    df['club_tier'] = df['Club'].apply(club_tier)
+    df = pd.get_dummies(df, columns=['club_tier'], drop_first=True)
+    
+    # Features selection
     features = (
         [f'{s}_per_90' for s in stats]
         + ['Age', 'minutesPlayed', 'rating']
         + [c for c in df.columns if c.startswith('pos_')]
-        + [c for c in df.columns if c.startswith('club_')]
+        + [c for c in df.columns if c.startswith('club_tier_')]
     )
     
-    # Drop NAs and set up matrices
+    # Drop rows with missing values
     df_model = df.dropna(subset=features + ['log_salary']).reset_index(drop=True)
     X = df_model[features] 
     y = df_model['log_salary']
     groups = df_model['Player']
     
-    # Create the cross-validation folds here so both models use the exact same splits
     cv = GroupKFold(n_splits=5)
 
     return df_model, X, y, groups, cv
@@ -195,28 +214,40 @@ def analyze_mispricing(df_model):
     # Display top 10 overpaid and underpaid players by position
     display_cols = ['Player', 'Position', 'seasons', 'Actual', 'Predicted', 'Deviation']
     
-    # Map the letters to full words for the final report
-    position_map = {
-        'F': 'FORWARDS',
-        'M': 'MIDFIELDERS',
-        'D': 'DEFENDERS',
-        'K': 'GOALKEEPERS'
-    }
+    position_names = {'F': 'FORWARDS', 'M': 'MIDFIELDERS', 'D': 'DEFENDERS', 'G': 'GOALKEEPERS'}
     
-    for pos_code, pos_name in position_map.items():
+    for pos_code, pos_name in position_names.items():
         pos_df = player_summary[player_summary['Position'] == pos_code]
 
+        if pos_df.empty:
+            continue
+
         print("=" * 70)
-        print(f"  POSITION: {pos_name}")
+        print(f"  {pos_name}")
         print("=" * 70)
         
-        print("\nTOP 10 OVERPAID (Actual Salary > Model Prediction):")
+        print("\nTOP 10 OVERPAID:")
         overpaid = pos_df.nlargest(10, 'avg_pct_dev')[display_cols]
         print(overpaid.to_string(index=False))
         
-        print("\nTOP 10 UNDERPAID (Actual Salary < Model Prediction):")
+        print("\nTOP 10 UNDERPAID:")
         underpaid = pos_df.nsmallest(10, 'avg_pct_dev')[display_cols]
         print(underpaid.to_string(index=False))
         print("\n")
+        
+    # --- CSV Export Logic ---
+    mispricing_full = player_summary.sort_values(
+        ['Position', 'avg_pct_dev'],
+        ascending=[True, False]
+    )[['Player', 'Position', 'seasons', 'Actual', 'Predicted', 'Deviation', 'avg_pct_dev']]
+
+    output_path = 'mispricing_results.csv'
+    mispricing_full.to_csv(output_path, index=False)
+
+    print("-" * 70)
+    print(f"Full mispricing table saved to: {os.path.abspath(output_path)}")
+    print(f"Total players in file: {len(mispricing_full)}")
+    print(f"\nBreakdown by position:")
+    print(mispricing_full['Position'].value_counts().to_string())
         
     return player_summary
